@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Stepper, Step, Button } from "@material-tailwind/react";
 import { useAccount } from "wagmi";
+import { BrowserProvider, Contract, parseUnits } from "ethers";
+
+import { pinataUpload } from "../pinataUpload";
+import ImpactChainFactoryABI from "../abi/ImpactChainFactory.json";
 
 // Define your steps here
 const STEPS = [
@@ -67,19 +71,67 @@ export default function ImpactChainStepperForm() {
   })();
 
   // Save relevant field before moving next
-  const handleNextWithData = () => {
-    if (activeStep === 2 && form.fundingType === "yourself") {
-      setForm(f => ({ ...f, wallet: userAddress }));
+const handleNextWithData = async () => {
+  if (activeStep === 2 && form.fundingType === "yourself") {
+    setForm(f => ({ ...f, wallet: userAddress }));
+  }
+  if (activeStep === 2 && form.fundingType === "org") {
+    setForm(f => ({ ...f, wallet: orgWalletInput }));
+  }
+ if (activeStep === 6) {
+  try {
+    // Upload images
+    const urls = [];
+    for (const file of form.images) {
+      const url = await pinataUpload(file);
+      urls.push(url);
     }
-    if (activeStep === 2 && form.fundingType === "org") {
-      setForm(f => ({ ...f, wallet: orgWalletInput }));
-    }
-    if (activeStep === 6) {
-      alert(JSON.stringify(form, null, 2));
-      return;
-    }
-    handleNext();
-  };
+
+    // Prepare contract details
+    const FACTORY_ADDRESS = "0x343C8076d1A188F0Bb86b5DA795FB367681c3710"; // your deployed address
+    const USDC_ADDRESS = "0x038c064836784A78bAeF18f698B78d2ce5bD0134"; // your ERC20Mock address
+
+    // Connect to user's wallet
+    if (!window.ethereum) throw new Error("Wallet not found");
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    const factory = new Contract(
+    FACTORY_ADDRESS,
+    ImpactChainFactoryABI.abi, // If you saved the whole artifact, use `.abi`
+    signer
+    );
+
+    // Parse funding goal to correct decimals (USDC usually uses 6, ERC20Mock might use 18)
+    const decimals = 18; // Update if your token is not 18 decimals!
+    const goalAmount = parseUnits(form.fundingGoal, decimals);
+
+    // Call createImpactChain
+    const tx = await factory.createImpactChain(
+      form.name,
+      form.wallet,
+      USDC_ADDRESS,
+      goalAmount,
+      form.title,
+      form.description,
+      urls[0] // or urls.join(',') if you want to store multiple
+    );
+
+    console.log("Transaction hash:", tx.hash);
+
+    // Optionally show a loading spinner here...
+    await tx.wait(); // Wait for tx confirmation
+
+    alert("Campaign created on blockchain!");
+    // Optionally reset the form or redirect user
+
+  } catch (err) {
+    alert("Error: " + (err.message ?? err));
+  }
+  return;
+}
+  handleNext();
+};
 
   // Keyboard: go to next on Enter (except on textarea and file input)
   useEffect(() => {

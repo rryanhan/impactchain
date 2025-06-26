@@ -1,6 +1,7 @@
 {
-  "LockModule#Lock": "0x811E860307541fA7FE6f53A7BF90E897E243373e",
-  "ImpactChainModule#ERC20Mock": "0xf95F6CE53a21ccA7350A600752Cd597b3A81b4b8",
-  "ImpactChainModule#ImpactProof": "0x2487bECA51a4c88356290108C0DC946814fFD8F6",
-  "ImpactChainModule#Donation": "0x225A1f5F4b5D5FF4253aD4b32EEf4C2F25d526A7"
+  "ImpactChainModule#ERC20Mock": "0x038c064836784A78bAeF18f698B78d2ce5bD0134",
+  "ImpactChainModule#ImpactChainFactory": "0x343C8076d1A188F0Bb86b5DA795FB367681c3710",
+  "ImpactChainModule#ImpactProof": "0xFB229EE6057FC1844B7083efa80836659A62109B",
+  "ImpactChainModule#Donation": "0xe1706E3e323CEB1302E2a20D542Ca6a6aEfbbDcf",
+  "ImpactChainModule#ImpactChain": "0xc06Fc15Af132EEab90cD00052aBCB19d5723298F"
 }
