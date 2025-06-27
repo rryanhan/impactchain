@@ -39,14 +39,14 @@ const ExploreImpactChains = () => {
       console.log("Length of deployedChainAddresses:", deployedChainAddresses.length);
   }
 
-  const [donoChains, setDonoChains] = useState([]);
+  const [impactChains, setimpactChains] = useState([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const publicClient = usePublicClient();
 
   useEffect(() => {
-    const fetchDonoChainDetails = async () => {
+    const fetchimpactChainDetails = async () => {
       if (!deployedChainAddresses || deployedChainAddresses.length === 0) {
-        setDonoChains([]);
+        setimpactChains([]);
         setIsLoadingDetails(false);
         return;
       }
@@ -111,24 +111,24 @@ const ExploreImpactChains = () => {
             }
         });
         console.log("Final fetchedChains array:", fetchedChains); // ADD THIS LOG
-        setDonoChains(fetchedChains);
+        setimpactChains(fetchedChains);
 
       } catch (err) {
-        console.error("Error fetching DonoChain details in catch block:", err); // MODIFY THIS LOG
+        console.error("Error fetching impactChain details in catch block:", err); // MODIFY THIS LOG
       } finally {
         setIsLoadingDetails(false);
       }
     };
 
     if (deployedChainAddresses !== undefined && publicClient) {
-        fetchDonoChainDetails();
+        fetchimpactChainDetails();
     }
   }, [deployedChainAddresses, publicClient]);
 
   if (isLoadingFactory || isLoadingDetails) {
     return (
       <section className="py-16 bg-gray-50 text-center">
-        <h2 className="text-3xl font-bold mb-8">Exploring DonoChains...</h2>
+        <h2 className="text-3xl font-bold mb-8">Exploring impactChains...</h2>
         <p className="text-gray-600">Loading decentralized campaigns. This may take a moment.</p>
         {/* Add a spinner or loading animation here */}
       </section>
@@ -138,7 +138,7 @@ const ExploreImpactChains = () => {
   if (factoryError) {
     return (
       <section className="py-16 bg-gray-50 text-center text-red-600">
-        <h2 className="text-3xl font-bold mb-8">Error Loading DonoChains</h2>
+        <h2 className="text-3xl font-bold mb-8">Error Loading impactChains</h2>
         <p>There was an error connecting to the blockchain or fetching campaign data: {factoryError.message}</p>
         <p>Please ensure your wallet is connected to the Polygon Amoy Testnet.</p>
       </section>
@@ -149,7 +149,7 @@ const ExploreImpactChains = () => {
     <section className="py-16 bg-gray-50">
       {/* Header with Search */}
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-bold">Explore DonoChains</h2>
+        <h2 className="text-3xl font-bold">Explore ImpactChains</h2>
         <div className="hidden md:flex items-center gap-4">
             <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -162,13 +162,13 @@ const ExploreImpactChains = () => {
       </div>
 
       {/* Message if no campaigns */}
-      {donoChains.length === 0 && (
-        <p className="text-center text-gray-600">No DonoChains found. Try creating one!</p>
+      {impactChains.length === 0 && (
+        <p className="text-center text-gray-600">No impactChains found. Try creating one!</p>
       )}
       
       {/* Grid of Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {donoChains.map(chain => (
+        {impactChains.map(chain => (
           <ImpactChainCard key={chain.contractAddress} chain={chain} />
         ))}
       </div>

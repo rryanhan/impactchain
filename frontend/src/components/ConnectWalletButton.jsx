@@ -1,7 +1,7 @@
 // frontend/src/components/ConnectWalletButton.jsx
 import React from 'react';
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi';
-import { injected } from '@wagmi/connectors';
+// import { injected } from '@wagmi/connectors';
 import { polygonAmoy } from 'wagmi/chains';
 
 function ConnectWalletButton() {
