@@ -1,8 +1,16 @@
+// frontend/src/components/ImpactChainCard.js
+import React from 'react';
 import ChainLink from "./ChainLink";
-
+// No longer need initialImpactChainsData here
+// import { ethers } from 'ethers'; // You might need ethers.js if you remove multicall and parse BigInts here
 
 const ImpactChainCard = ({ chain }) => {
-  const percentage = Math.min((chain.raised / chain.goal) * 100, 100);
+  // Ensure goal and raised are treated as numbers after formatting
+  // If not using multicall (which formats with ethers.utils.formatUnits), you'd format BigInts here
+  const raised = chain.raised; // Assume already formatted to number by ExploreImpactChains
+  const goal = chain.goal;     // Assume already formatted to number by ExploreImpactChains
+
+  const percentage = Math.min((raised / goal) * 100, 100);
   const filledLinks = Math.floor((percentage / 100) * 12); // 12 links total
 
   return (
@@ -12,7 +20,7 @@ const ImpactChainCard = ({ chain }) => {
         <h3 className="text-lg font-bold mb-3 truncate">{chain.title}</h3>
         
         {/* Custom Chain Link Progress Bar */}
-        <div className="flex items-center mb-3"> {/* Removed the gap */}
+        <div className="flex items-center mb-3">
           {Array.from({ length: 12 }).map((_, index) => (
             <div key={index} className="flex-1">
               <ChainLink 
@@ -24,7 +32,7 @@ const ImpactChainCard = ({ chain }) => {
           ))}
         </div>
         
-        <p className="text-sm text-center text-gray-600 font-semibold">{chain.raised.toLocaleString()} USDC Raised</p>
+        <p className="text-sm text-center text-gray-600 font-semibold">{raised.toLocaleString()} USDC Raised</p>
       </div>
     </div>
   );
