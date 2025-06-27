@@ -12,24 +12,21 @@ import { wagmiConfig } from './wagmiConfig.jsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from "@material-tailwind/react";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 // Create the root element
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ThemeProvider>
-    <BrowserRouter>
-    {/* Wrap with QueryClientProvider first */}
-    <QueryClientProvider client={queryClient}>
-      {/* Then wrap with WagmiConfig */}
-      <WagmiConfig config={wagmiConfig}>
-        <App />
-      </WagmiConfig>
-    </QueryClientProvider>
-    </BrowserRouter>
-    </ThemeProvider>
-  </React.StrictMode>,
+    <React.StrictMode>
+        <BrowserRouter>
+            {/* Wrap with QueryClientProvider first */}
+            <QueryClientProvider client={queryClient}>
+                {/* Then wrap with WagmiConfig */}
+                <WagmiConfig config={wagmiConfig}>
+                    <App />
+                </WagmiConfig>
+            </QueryClientProvider>
+        </BrowserRouter>
+    </React.StrictMode>,
 );
