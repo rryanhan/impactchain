@@ -13,6 +13,10 @@ const CampaignDetailPage = () => {
     const [isCreator, setIsCreator] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0); // Add refresh key for forcing re-renders
+    const [imageError, setImageError] = useState(false);
+
+    // Fallback image when IPFS gateway fails
+    const fallbackImage = "https://placehold.co/800x400/16a34a/ffffff?text=Campaign+Image";
 
     // Read campaign details using wagmi
     const { data: campaignDetails, isLoading: isLoadingDetails } = useReadContract({
@@ -60,6 +64,10 @@ const CampaignDetailPage = () => {
         setRefreshKey(prev => prev + 1); // Force re-render of ImpactProofDisplay
     };
 
+    const handleImageError = () => {
+        setImageError(true);
+    };
+
     if (isLoadingDetails || isLoadingCreator || loading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -99,9 +107,11 @@ const CampaignDetailPage = () => {
                 {/* Campaign Image */}
                 {campaign.imageUrl && (
                     <img
-                        src={campaign.imageUrl}
+                        src={imageError ? fallbackImage : campaign.imageUrl}
                         alt={campaign.title}
                         className="w-full h-64 object-cover rounded-lg mb-6"
+                        onError={handleImageError}
+                        crossOrigin="anonymous"
                     />
                 )}
 

@@ -100,7 +100,7 @@ export default function ImpactChainStepperForm() {
     // Save relevant field before moving next
     const handleNextWithData = async () => {
         if (activeStep === 2 && form.fundingType === "yourself") {
-            setForm(f => ({ ...f, wallet: userAddress }));
+            setForm(f => ({ ...f, wallet: userAddress || "" }));
         }
         if (activeStep === 2 && form.fundingType === "org") {
             setForm(f => ({ ...f, wallet: orgWalletInput }));
@@ -240,7 +240,7 @@ export default function ImpactChainStepperForm() {
                         <>
                             <label className="block text-lg font-medium mb-2">Verify your wallet address</label>
                             <p className="mb-4 text-gray-700">
-                                {isConnected
+                                {isConnected && userAddress
                                     ? `Connected wallet: ${userAddress}`
                                     : "Please connect your wallet to verify."}
                             </p>
@@ -376,6 +376,7 @@ export default function ImpactChainStepperForm() {
                             multiple
                             accept="image/*"
                             className="mb-6"
+                            value=""
                             onChange={e => setForm(f => ({ ...f, images: Array.from(e.target.files) }))}
                         />
                         <div className="flex justify-between">
