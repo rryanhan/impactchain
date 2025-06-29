@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { useReadContract, useAccount } from 'wagmi';
 import { formatUnits } from 'ethers';
 import { abi as impactChainAbi } from '../abi/ImpactChain.json';
+import DonationForm from '../components/DonationForm';
 
 const CampaignDetailPage = () => {
   const { contractAddress } = useParams();
@@ -97,8 +98,7 @@ const CampaignDetailPage = () => {
           {/* SECTION D: Make a Donation */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4">Support This ImpactChain</h2>
-            <p className="text-gray-600">Donation form will go here.</p>
-            {/* Placeholder for input, token selection, approve, and donate buttons */}
+            <DonationForm contractAddress={contractAddress} disabled={!isConnected} />
           </div>
 
           {/* SECTION E: Live DonoChain Activity */}
