@@ -1,123 +1,176 @@
 // frontend/src/pages/CampaignDetailPage.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useReadContract, useAccount } from 'wagmi';
-import { formatUnits } from 'ethers';
-import { abi as impactChainAbi } from '../abi/ImpactChain.json';
+import { useAccount, useReadContract } from 'wagmi';
+import ImpactChainABI from '../abi/ImpactChain.json';
+import ImpactProofUpload from '../components/ImpactProofUpload';
+import ImpactProofDisplay from '../components/ImpactProofDisplay';
 
 const CampaignDetailPage = () => {
-  const { contractAddress } = useParams();
-  const { isConnected } = useAccount();
+    const { contractAddress } = useParams();
+    const { address: userAddress, isConnected } = useAccount();
+    const [campaign, setCampaign] = useState(null);
+    const [isCreator, setIsCreator] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [refreshKey, setRefreshKey] = useState(0); // Add refresh key for forcing re-renders
 
-  const { data: campaignDetails, isLoading, error } = useReadContract({
-    address: contractAddress,
-    abi: impactChainAbi,
-    functionName: 'getCampaignDetails',
-    enabled: !!contractAddress,
-  });
+    // Read campaign details using wagmi
+    const { data: campaignDetails, isLoading: isLoadingDetails } = useReadContract({
+        address: contractAddress,
+        abi: ImpactChainABI.abi,
+        functionName: 'getCampaignDetails',
+    });
 
-  if (isLoading) {
-    return (
-      <div className="text-center py-16">
-        <p className="text-gray-600">Loading ImpactChain details...</p>
-        {/* Add spinner */}
-      </div>
-    );
-  }
+    // Read creator address using wagmi
+    const { data: creatorAddress, isLoading: isLoadingCreator } = useReadContract({
+        address: contractAddress,
+        abi: ImpactChainABI.abi,
+        functionName: 'creator',
+    });
 
-  if (error) {
-    return (
-      <div className="text-center py-16 text-red-600">
-        <p>Error loading ImpactChain: {error.message}</p>
-        <p>Please ensure the address in the URL is correct and your wallet is connected to Polygon Amoy Testnet.</p>
-      </div>
-    );
-  }
+    useEffect(() => {
+        if (campaignDetails && creatorAddress) {
+            const campaignData = {
+                title: campaignDetails[0],
+                description: campaignDetails[1],
+                imageUrl: campaignDetails[2],
+                goalAmount: campaignDetails[3].toString(),
+                raisedAmount: campaignDetails[4].toString(),
+                charityWallet: campaignDetails[5],
+                creatorName: campaignDetails[6],
+                creationDate: campaignDetails[7].toString(),
+                allowDeletion: campaignDetails[8], // NEW: Deletion toggle
+                creator: creatorAddress,
+                contractAddress: contractAddress
+            };
 
-  if (!campaignDetails) {
-    return (
-      <div className="text-center py-16">
-        <p className="text-gray-600">No ImpactChain found at this address.</p>
-      </div>
-    );
-  }
+            setCampaign(campaignData);
+            setIsCreator(userAddress && creatorAddress.toLowerCase() === userAddress.toLowerCase());
+            setLoading(false);
+        }
+    }, [campaignDetails, creatorAddress, userAddress, contractAddress]);
 
-  const [
-    title,
-    description,
-    imageUrl,
-    goalAmount,
-    raisedAmount,
-    charityWallet,
-    creatorName,
-    creationDate
-  ] = campaignDetails;
+    // Function to refresh impact proofs
+    const handleProofAdded = () => {
+        setRefreshKey(prev => prev + 1); // Force re-render of ImpactProofDisplay
+    };
 
-  const formattedGoal = Number(formatUnits(goalAmount, 18));
-  const formattedRaised = Number(formatUnits(raisedAmount, 18));
-  const progressPercentage = Math.min((formattedRaised / formattedGoal) * 100, 100);
+    // Function to handle proof deletion
+    const handleProofDeleted = () => {
+        setRefreshKey(prev => prev + 1); // Force re-render of ImpactProofDisplay
+    };
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Main Two-Column Layout for Top Section */}
-      <div>
-        <h1 className="text-4xl font-bold mb-4">{title}</h1>
-          <p className="text-gray-600 mb-6">Created by {creatorName} on {new Date(Number(creationDate) * 1000).toLocaleDateString()}</p>
-      </div>
-      <div className="flex flex-col lg:flex-row gap-8 mb-10"> {/* flex-col on small screens, flex-row on large */}
-        
-
-        {/* LEFT PANEL (60% width on large screens) */}
-        <div className="flex-1 lg:w-3/5"> {/* flex-1 ensures it takes available space, lg:w-3/5 sets 60% on large */}
-          {/* SECTION B: Hero Section - ImpactChain Overview */}
-          
-          <img src={imageUrl} alt={title} className="w-full h-80 object-cover rounded-lg mb-8 shadow-md"/>
-          <p className="text-gray-700 leading-relaxed mb-10">{description}</p>
-        </div>
-
-        {/* RIGHT PANEL (40% width on large screens) */}
-        <div className="flex-1 lg:w-2/5 flex flex-col gap-8"> {/* flex-1 ensures it takes available space, lg:w-2/5 sets 40% on large, flex-col for stacking inner sections */}
-          
-          {/* SECTION C: Financial Transparency Dashboard */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Funding Progress</h2>
-            <p className="text-gray-600 mb-4">Raised: <span className="font-bold text-green-600">{formattedRaised.toLocaleString()} USDC</span> / Goal: {formattedGoal.toLocaleString()} USDC</p>
-            <div className="relative w-32 h-32 mx-auto mb-4"> {/* Centered for better visual */}
-              <div className="w-full h-full rounded-full bg-gray-200 absolute"></div>
-              <div className="w-full h-full rounded-full absolute"
-                   style={{
-                     background: `conic-gradient(#16a34a ${progressPercentage}%, #e5e7eb ${progressPercentage}%)`
-                   }}></div>
-              <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-gray-800">
-                {progressPercentage.toFixed(0)}%
-              </div>
+    if (isLoadingDetails || isLoadingCreator || loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="text-xl">Loading campaign details...</div>
             </div>
-          </div>
-          
-          {/* SECTION D: Make a Donation */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Support This ImpactChain</h2>
-            <p className="text-gray-600">Donation form will go here.</p>
-            {/* Placeholder for input, token selection, approve, and donate buttons */}
-          </div>
+        );
+    }
 
-          {/* SECTION E: Live DonoChain Activity */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Live DonoChain Activity</h2>
-            <p className="text-gray-600">Recent transactions will appear here.</p>
-            {/* Placeholder for live feed of transactions */}
-          </div>
+    if (!campaign) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="text-xl text-red-500">Campaign not found</div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-4xl mx-auto p-6">
+            {/* Campaign Header */}
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                    <h1 className="text-3xl font-bold text-gray-900">{campaign.title}</h1>
+                    <div className="flex items-center space-x-2">
+                        {isCreator && (
+                            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                                Campaign Creator
+                            </span>
+                        )}
+                        {campaign.allowDeletion && (
+                            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                                Deletion Enabled
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Campaign Image */}
+                {campaign.imageUrl && (
+                    <img
+                        src={campaign.imageUrl}
+                        alt={campaign.title}
+                        className="w-full h-64 object-cover rounded-lg mb-6"
+                    />
+                )}
+
+                {/* Campaign Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 className="text-lg font-semibold mb-2">Campaign Details</h3>
+                        <p className="text-gray-700 mb-4">{campaign.description}</p>
+                        <p className="text-sm text-gray-500">
+                            Created by: {campaign.creatorName}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            Created: {new Date(parseInt(campaign.creationDate) * 1000).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            Impact Proof Deletion: {campaign.allowDeletion ? 'Enabled' : 'Disabled'}
+                        </p>
+                    </div>
+
+                    <div>
+                        <h3 className="text-lg font-semibold mb-2">Funding Progress</h3>
+                        <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <span>Goal:</span>
+                                <span className="font-semibold">{parseInt(campaign.goalAmount) / 1e18} USDC</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Raised:</span>
+                                <span className="font-semibold text-green-600">
+                                    {parseInt(campaign.raisedAmount) / 1e18} USDC
+                                </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-green-500 h-2 rounded-full"
+                                    style={{
+                                        width: `${Math.min((parseInt(campaign.raisedAmount) / parseInt(campaign.goalAmount)) * 100, 100)}%`
+                                    }}
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Impact Proofs Section */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+                <h2 className="text-2xl font-bold mb-6">Impact Proofs</h2>
+
+                {/* Upload Section for Creator */}
+                {isCreator && (
+                    <div className="mb-8">
+                        <h3 className="text-lg font-semibold mb-4">Add Impact Proof</h3>
+                        <ImpactProofUpload
+                            contractAddress={contractAddress}
+                            onProofAdded={handleProofAdded}
+                        />
+                    </div>
+                )}
+
+                {/* Display Impact Proofs */}
+                <ImpactProofDisplay
+                    key={refreshKey} // Force re-render when refreshKey changes
+                    contractAddress={contractAddress}
+                    onProofDeleted={handleProofDeleted}
+                />
+            </div>
         </div>
-      </div>
-
-      {/* SECTION F: Verified Impact Reports Dashboard (Full width, below the two-column layout) */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Verified Impact Reports</h2>
-        <p className="text-gray-600">Impact reports will be displayed here.</p>
-        {/* Placeholder for impact report cards */}
-      </div>
-    </div>
-  );
+    );
 };
 
 export default CampaignDetailPage;
