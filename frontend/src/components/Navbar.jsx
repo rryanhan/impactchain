@@ -8,8 +8,9 @@ function Navbar() {
       w-full flex items-center justify-between bg-gray-50
     ">
       {/* Logo/Title */}
+      <Link to="/">
       <img src={"/src/assets/impact-chain-logo.png"} alt="ImpactChain Logo" className="h-15"/>
-
+      </Link>
       {/* Navigation and Connect Wallet */}
       <nav className="flex items-center space-x-4">
         {/* "Start an ImpactChain!" button */}
@@ -27,9 +28,9 @@ function Navbar() {
         
         <img className="
           w-20
-          flex items-center justify-center 
-          
-        " src="./src/assets/profile-icon.png"
+          flex items-center justify-center" 
+          src="../src/assets/profile-icon.png"
+          alt='ImpactChain Logo'
         />
       </nav>
     </header>

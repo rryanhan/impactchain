@@ -21,14 +21,11 @@ const ExploreImpactChains = () => {
   const { address, isConnected } = useAccount();
 
   // 1. Read all deployed ImpactChain addresses from the Factory
-  // OLD: const { data: deployedChainAddresses, isLoading: isLoadingFactory, error: factoryError } = useContractRead({
+
   const { data: deployedChainAddresses, isLoading: isLoadingFactory, error: factoryError } = useReadContract({
     address: IMPACT_CHAIN_FACTORY_ADDRESS,
     abi: impactChainFactoryAbi,
     functionName: 'getAllImpactChains',
-    // Wagmi v2 hooks typically include 'query: { refetchInterval: ... }' for watching
-    // If you need refetching, check wagmi docs for useReadContract's equivalent
-    // For a simple list, default behavior usually refetches on block.
   });
 
     console.log("isLoadingFactory:", isLoadingFactory);

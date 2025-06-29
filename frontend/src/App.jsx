@@ -6,6 +6,7 @@ import './index.css';
 import Navbar from './components/Navbar.jsx';
 import HomePage from './pages/HomePage.jsx';
 import CreateImpactChain from './pages/CreateImpactChain.jsx';
+import CampaignDetailPage from './pages/CampaignDetailPage.jsx';
 
 
 import { Routes, Route } from 'react-router-dom';
@@ -25,6 +26,8 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/create" element={<CreateImpactChain />} />
+              <Route path="/campaigns/:contractAddress" element={<CampaignDetailPage />} />
+
             </Routes>
           </div>
         </main>
