@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAccount, useReadContract } from 'wagmi';
 import { formatUnits } from 'ethers';
-import { abi as impactChainAbi } from '../abi/ImpactChain.json';
+import ImpactChainABI from '../abi/ImpactChain.json';
 import DonationForm from '../components/DonationForm';
 import ImpactProofUpload from '../components/ImpactProofUpload';
 import ImpactProofDisplay from '../components/ImpactProofDisplay';
@@ -161,7 +161,7 @@ const CampaignDetailPage = () => {
             </div>
 
             {/* Impact Proofs Section */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                 <h2 className="text-2xl font-bold mb-6">Impact Proofs</h2>
 
                 {/* Upload Section for Creator */}
@@ -183,20 +183,18 @@ const CampaignDetailPage = () => {
                 />
             </div>
 
-          </div>
-          
-          {/* SECTION D: Make a Donation */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Support This ImpactChain</h2>
-            <DonationForm contractAddress={contractAddress} disabled={!isConnected} />
-          </div>
+            {/* Donation Section */}
+            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 className="text-2xl font-bold mb-4">Support This ImpactChain</h2>
+                <DonationForm contractAddress={contractAddress} disabled={!isConnected} />
+            </div>
 
-          {/* SECTION E: Live DonoChain Activity */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Live DonoChain Activity</h2>
-            <p className="text-gray-600">Recent transactions will appear here.</p>
-            {/* Placeholder for live feed of transactions */}
-          </div>
+            {/* Live DonoChain Activity */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-2xl font-bold mb-4">Live DonoChain Activity</h2>
+                <p className="text-gray-600">Recent transactions will appear here.</p>
+                {/* Placeholder for live feed of transactions */}
+            </div>
         </div>
     );
 };
