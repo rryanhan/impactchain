@@ -2,9 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAccount, useReadContract } from 'wagmi';
-import ImpactChainABI from '../abi/ImpactChain.json';
+import { formatUnits } from 'ethers';
+import { abi as impactChainAbi } from '../abi/ImpactChain.json';
+import DonationForm from '../components/DonationForm';
 import ImpactProofUpload from '../components/ImpactProofUpload';
 import ImpactProofDisplay from '../components/ImpactProofDisplay';
+
 
 const CampaignDetailPage = () => {
     const { contractAddress } = useParams();
@@ -179,6 +182,21 @@ const CampaignDetailPage = () => {
                     onProofDeleted={handleProofDeleted}
                 />
             </div>
+
+          </div>
+          
+          {/* SECTION D: Make a Donation */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Support This ImpactChain</h2>
+            <DonationForm contractAddress={contractAddress} disabled={!isConnected} />
+          </div>
+
+          {/* SECTION E: Live DonoChain Activity */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Live DonoChain Activity</h2>
+            <p className="text-gray-600">Recent transactions will appear here.</p>
+            {/* Placeholder for live feed of transactions */}
+          </div>
         </div>
     );
 };
