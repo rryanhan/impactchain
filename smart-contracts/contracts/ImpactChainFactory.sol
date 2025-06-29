@@ -24,7 +24,8 @@ contract ImpactChainFactory {
         address indexed charityWallet,
         uint256 goalAmount,
         string title,
-        uint256 creationDate // ADDED
+        uint256 creationDate, // ADDED
+        bool allowDeletion // NEW
     );
 
     // --- Functions ---
@@ -38,6 +39,7 @@ contract ImpactChainFactory {
      * @param _title The title of the campaign.
      * @param _description A description of the campaign.
      * @param _imageUrl A URL for the campaign's main image.
+     * @param _allowDeletion Whether to allow deletion of impact proofs for this campaign.
      */
     function createImpactChain(
         string memory _creatorName,
@@ -46,21 +48,26 @@ contract ImpactChainFactory {
         uint256 _goalAmount,
         string memory _title,
         string memory _description,
-        string memory _imageUrl
-    ) public {
+        string memory _imageUrl,
+        bool _allowDeletion // NEW: Toggle for deletion feature
+    ) public returns (address) {
+        // Create new ImpactChain contract
         ImpactChain newImpactChain = new ImpactChain(
-            msg.sender,
+            msg.sender, // creator
             _creatorName,
             _charityWallet,
             _tokenAddress,
             _goalAmount,
             _title,
             _description,
-            _imageUrl
+            _imageUrl,
+            _allowDeletion // NEW: Pass deletion toggle
         );
 
+        // Store the address
         deployedImpactChains.push(newImpactChain);
 
+        // Emit event
         emit ImpactChainCreated(
             address(newImpactChain),
             msg.sender,
@@ -68,15 +75,26 @@ contract ImpactChainFactory {
             _charityWallet,
             _goalAmount,
             _title,
-            block.timestamp // ADDED: Emit the creation timestamp
+            block.timestamp, // creationDate
+            _allowDeletion // NEW
         );
+
+        return address(newImpactChain);
     }
 
     /**
-     * @notice Returns an array of all created ImpactChain addresses.
-     * @return An array of addresses.
+     * @notice Returns all deployed ImpactChain contract addresses.
+     * @return An array of all deployed ImpactChain contract addresses.
      */
     function getAllImpactChains() public view returns (ImpactChain[] memory) {
         return deployedImpactChains;
+    }
+
+    /**
+     * @notice Returns the number of deployed ImpactChain contracts.
+     * @return The number of deployed ImpactChain contracts.
+     */
+    function getImpactChainCount() public view returns (uint256) {
+        return deployedImpactChains.length;
     }
 }
