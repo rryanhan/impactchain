@@ -146,20 +146,44 @@ const DonationChain = ({ contractAddress }) => {
   });
 
   useEffect(() => {
-    if (!contractAddress) {
+  if (!contractAddress) {
+    setLoading(false);
+    return;
+  }
+  setLoading(true);
+
+  const cacheKey = `donations_${contractAddress}`;
+  const cached = sessionStorage.getItem(cacheKey);
+
+  let cachedDonations = [];
+  if (cached) {
+    try {
+      cachedDonations = JSON.parse(cached);
+      setDonations(cachedDonations);
       setLoading(false);
-      return;
-    }
-    setLoading(true);
-    console.log('Fetching donations for contract:', contractAddress);
-    fetchRecentDonations(contractAddress)
-      .then(data => {
-        console.log('Donations set in state:', data);
+      console.log('[DonationChain] Loaded donations from cache:', cachedDonations);
+      // Fetch in background to update
+      fetchRecentDonations(contractAddress).then(data => {
         setDonations(data);
-      })
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
-  }, [contractAddress]);
+        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        console.log('[DonationChain] Updated donations from background fetch:', data);
+      });
+      return;
+    } catch (e) {
+      // Ignore parse errors and fetch fresh
+      console.warn('[DonationChain] Cache parse error, fetching fresh:', e);
+    }
+  }
+
+  fetchRecentDonations(contractAddress)
+    .then(data => {
+      setDonations(data);
+      sessionStorage.setItem(cacheKey, JSON.stringify(data));
+      console.log('[DonationChain] Donations fetched and cached:', data);
+    })
+    .catch(err => console.error('[DonationChain] Error fetching donations:', err))
+    .finally(() => setLoading(false));
+}, [contractAddress]);
 
   if (loading) {
     return <div className="text-gray-400 text-sm">Loading recent donations...</div>;
