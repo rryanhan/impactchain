@@ -1,13 +1,12 @@
-// frontend/src/pages/CampaignDetailPage.js
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAccount, useReadContract } from 'wagmi';
 import { formatUnits } from 'ethers';
 import ImpactChainABI from '../abi/ImpactChain.json';
 import DonationForm from '../components/DonationForm';
+import DonationChain from '../components/DonationChain';
 import ImpactProofUpload from '../components/ImpactProofUpload';
 import ImpactProofDisplay from '../components/ImpactProofDisplay';
-
 
 const CampaignDetailPage = () => {
     const { contractAddress } = useParams();
@@ -15,10 +14,9 @@ const CampaignDetailPage = () => {
     const [campaign, setCampaign] = useState(null);
     const [isCreator, setIsCreator] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [refreshKey, setRefreshKey] = useState(0); // Add refresh key for forcing re-renders
+    const [refreshKey, setRefreshKey] = useState(0);
     const [imageError, setImageError] = useState(false);
 
-    // Fallback image when IPFS gateway fails
     const fallbackImage = "https://placehold.co/800x400/16a34a/ffffff?text=Campaign+Image";
 
     // Read campaign details using wagmi
@@ -46,7 +44,7 @@ const CampaignDetailPage = () => {
                 charityWallet: campaignDetails[5],
                 creatorName: campaignDetails[6],
                 creationDate: campaignDetails[7].toString(),
-                allowDeletion: campaignDetails[8], // NEW: Deletion toggle
+                allowDeletion: campaignDetails[8],
                 creator: creatorAddress,
                 contractAddress: contractAddress
             };
@@ -57,19 +55,9 @@ const CampaignDetailPage = () => {
         }
     }, [campaignDetails, creatorAddress, userAddress, contractAddress]);
 
-    // Function to refresh impact proofs
-    const handleProofAdded = () => {
-        setRefreshKey(prev => prev + 1); // Force re-render of ImpactProofDisplay
-    };
-
-    // Function to handle proof deletion
-    const handleProofDeleted = () => {
-        setRefreshKey(prev => prev + 1); // Force re-render of ImpactProofDisplay
-    };
-
-    const handleImageError = () => {
-        setImageError(true);
-    };
+    const handleProofAdded = () => setRefreshKey(prev => prev + 1);
+    const handleProofDeleted = () => setRefreshKey(prev => prev + 1);
+    const handleImageError = () => setImageError(true);
 
     if (isLoadingDetails || isLoadingCreator || loading) {
         return (
@@ -87,55 +75,40 @@ const CampaignDetailPage = () => {
         );
     }
 
-    return (
-        <div className="max-w-4xl mx-auto p-6">
-            {/* Campaign Header */}
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-3xl font-bold text-gray-900">{campaign.title}</h1>
-                    <div className="flex items-center space-x-2">
-                        {isCreator && (
-                            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                                Campaign Creator
-                            </span>
-                        )}
-                        {campaign.allowDeletion && (
-                            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                                Deletion Enabled
-                            </span>
-                        )}
-                    </div>
-                </div>
+    // Format numbers for display
+    const formattedGoal = Number(formatUnits(campaign.goalAmount, 18));
+    const formattedRaised = Number(formatUnits(campaign.raisedAmount, 18));
+    const progressPercentage = Math.min((formattedRaised / formattedGoal) * 100, 100);
 
-                {/* Campaign Image */}
-                {campaign.imageUrl && (
+    return (
+        <div className="container mx-auto px-4 py-8">
+            {/* Header */}
+            <div>
+                <h1 className="text-4xl font-bold mb-4">{campaign.title}</h1>
+                <p className="text-gray-600 mb-6">
+                    Created by {campaign.creatorName} on {new Date(Number(campaign.creationDate) * 1000).toLocaleDateString()}
+                </p>
+            </div>
+            {/* Two-column layout */}
+            <div className="flex flex-col lg:flex-row gap-8 mb-10">
+                {/* LEFT PANEL */}
+                <div className="flex-1 lg:w-3/5">
+                    {/* Campaign Image */}
                     <img
                         src={imageError ? fallbackImage : campaign.imageUrl}
                         alt={campaign.title}
-                        className="w-full h-64 object-cover rounded-lg mb-6"
+                        className="w-full h-80 object-cover rounded-lg mb-8 shadow-md"
                         onError={handleImageError}
                         crossOrigin="anonymous"
                     />
-                )}
-
-                {/* Campaign Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <h3 className="text-lg font-semibold mb-2">Campaign Details</h3>
-                        <p className="text-gray-700 mb-4">{campaign.description}</p>
-                        <p className="text-sm text-gray-500">
-                            Created by: {campaign.creatorName}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            Created: {new Date(parseInt(campaign.creationDate) * 1000).toLocaleDateString()}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            Impact Proof Deletion: {campaign.allowDeletion ? 'Enabled' : 'Disabled'}
-                        </p>
-                    </div>
-
-                    <div>
-                        <h3 className="text-lg font-semibold mb-2">Funding Progress</h3>
+                    {/* Campaign Description */}
+                    <p className="text-gray-700 leading-relaxed mb-10">{campaign.description}</p>
+                    
+                </div>
+                {/* RIGHT PANEL */}
+                <div className="flex-1 lg:w-2/5 flex flex-col gap-8">
+                    {/* Funding Progress */}
+                    <div className="bg-white p-6 rounded-lg shadow-md">
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <span>Goal:</span>
@@ -157,44 +130,37 @@ const CampaignDetailPage = () => {
                             </div>
                         </div>
                     </div>
+                    {/* Donation Form */}
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h2 className="text-2xl font-bold mb-4">Support This ImpactChain</h2>
+                        <DonationForm contractAddress={contractAddress} disabled={!isConnected} />
+                    </div>
+                    {/* Live DonoChain Activity */}
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h2 className="text-2xl font-bold mb-4">Live ImpactChain Activity</h2>
+                        <DonationChain contractAddress={contractAddress} />
+                    </div>
                 </div>
+                
             </div>
-
             {/* Impact Proofs Section */}
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h2 className="text-2xl font-bold mb-6">Impact Proofs</h2>
-
-                {/* Upload Section for Creator */}
-                {isCreator && (
-                    <div className="mb-8">
-                        <h3 className="text-lg font-semibold mb-4">Add Impact Proof</h3>
-                        <ImpactProofUpload
+                    <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <h2 className="text-2xl font-bold mb-6">Impact Proofs</h2>
+                        {isCreator && (
+                            <div className="mb-8">
+                                <h3 className="text-lg font-semibold mb-4">Add Impact Proof</h3>
+                                <ImpactProofUpload
+                                    contractAddress={contractAddress}
+                                    onProofAdded={handleProofAdded}
+                                />
+                            </div>
+                        )}
+                        <ImpactProofDisplay
+                            key={refreshKey}
                             contractAddress={contractAddress}
-                            onProofAdded={handleProofAdded}
+                            onProofDeleted={handleProofDeleted}
                         />
                     </div>
-                )}
-
-                {/* Display Impact Proofs */}
-                <ImpactProofDisplay
-                    key={refreshKey} // Force re-render when refreshKey changes
-                    contractAddress={contractAddress}
-                    onProofDeleted={handleProofDeleted}
-                />
-            </div>
-
-            {/* Donation Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 className="text-2xl font-bold mb-4">Support This ImpactChain</h2>
-                <DonationForm contractAddress={contractAddress} disabled={!isConnected} />
-            </div>
-
-            {/* Live DonoChain Activity */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold mb-4">Live DonoChain Activity</h2>
-                <p className="text-gray-600">Recent transactions will appear here.</p>
-                {/* Placeholder for live feed of transactions */}
-            </div>
         </div>
     );
 };
