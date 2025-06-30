@@ -61,10 +61,7 @@ const ImpactChainStepperSidebar = ({ onBack }) => (
     </div>
 
     {/* Buttons */}
-    <div className="flex space-x-4 mt-auto">
-      <button className="bg-gray-200 rounded px-5 py-2 font-medium text-gray-800 hover:bg-gray-300">Preview</button>
-      <button className="bg-green-400 rounded px-5 py-2 font-bold text-black hover:bg-green-500">Lock It In!</button>
-    </div>
+    
   </div>
 );
 

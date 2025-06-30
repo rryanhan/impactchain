@@ -17,6 +17,20 @@ import { formatUnits } from 'ethers'; // For formatting big numbers
 const IMPACT_CHAIN_FACTORY_ADDRESS = "0x343C8076d1A188F0Bb86b5DA795FB367681c3710"; // <--- REPLACE WITH YOUR FACTORY ADDRESS
 // --------------------
 
+const HIDDEN_CHAIN_ADDRESSES = [
+  "0xfa949769650777Eb7c30250df1f504C992D3534c",
+  "0xb3a19a0235A9A509CEC41E23F4b8F07d259875ce",
+  "0x95B2796365987d8FbbDc85E49f22dD74A1B5E08C",
+  "0x72538A04B871C4A46F2d43957A03d71Ce8bb14C2",
+  "0xfa7F05B11f1Dd5C1048735697e9D7037eDb66b0A",
+  "0x938688c30FC340b7090fa98f2B684790e8fB908a",
+  "0x2C40FAcAB765F144f77e4db3654F944e24b72da6",
+  "0x27d4B2d41920CffD362c7e5DbA3b8a5f1e515Dcc",
+  "0x2c0588552Ca50652C092DD0e4b07eDBB1Acc819c",
+  "0xA6625aD90A66759cB02ce958d397A0CC1b889730",
+];
+
+
 const ExploreImpactChains = () => {
   const { address, isConnected } = useAccount();
 
@@ -39,6 +53,10 @@ const ExploreImpactChains = () => {
   const [impactChains, setimpactChains] = useState([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const publicClient = usePublicClient();
+
+  const visibleChains = impactChains.filter(
+  chain => !HIDDEN_CHAIN_ADDRESSES.map(addr => addr.toLowerCase()).includes(chain.contractAddress.toLowerCase())
+);
 
   useEffect(() => {
     const fetchimpactChainDetails = async () => {
@@ -165,8 +183,8 @@ const ExploreImpactChains = () => {
       
       {/* Grid of Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {impactChains.map(chain => (
-          <ImpactChainCard key={chain.contractAddress} chain={chain} />
+        {visibleChains.map(chain => (
+        <ImpactChainCard key={chain.contractAddress} chain={chain} />
         ))}
       </div>
     </section>

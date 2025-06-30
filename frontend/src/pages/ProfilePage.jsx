@@ -137,12 +137,12 @@ const ProfilePage = () => {
     const otherCampaigns = userCampaigns.filter(c => c.type === 'potential_donation');
 
     return (
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="max-w-full mx-auto">
             {/* Profile Header */}
             <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                 <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-2xl">👤</span>
+                    <div className="w-16 h-16 flex items-center justify-center">
+                        <img src="../src/assets/profile-icon.png"/>
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Your Profile</h1>
@@ -267,7 +267,7 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* Transaction History Placeholder */}
+            {/* Transaction History Placeholder 
             <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
                 <div className="text-center py-8">
@@ -277,6 +277,7 @@ const ProfilePage = () => {
                     </p>
                 </div>
             </div>
+            */}
         </div>
     );
 };

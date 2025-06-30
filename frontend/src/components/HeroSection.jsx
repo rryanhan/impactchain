@@ -7,9 +7,10 @@ function HeroSection() {
       flex flex-row
       p-20 
       gap-16
+      mt-10
     ">
       {/* Left Text Content */}
-      <div className="flex-1 text-center text-left">
+      <div className="flex-[3] text-center text-left">
         {/* Using a default green to test if any color classes are working */}
         <h2 className="
           isolate
@@ -42,7 +43,7 @@ function HeroSection() {
       </div>
 
       {/* Right Illustration */}
-      <div className="flex-1 flex justify-center md:justify-end">
+      <div className="flex-[2] flex justify-center md:justify-end">
         <img 
           src="./src/assets/impact-illustration.png"
           alt="Hand holding blockchain chain" 

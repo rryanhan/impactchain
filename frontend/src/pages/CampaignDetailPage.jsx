@@ -8,6 +8,13 @@ import DonationChain from '../components/DonationChain';
 import ImpactProofUpload from '../components/ImpactProofUpload';
 import ImpactProofDisplay from '../components/ImpactProofDisplay';
 
+// Small badge for ImpactChain Creator
+const ImpactChainCreatorBadge = () => (
+  <span className="ml-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold align-middle">
+    ImpactChain Creator
+  </span>
+);
+
 const CampaignDetailPage = () => {
     const { contractAddress } = useParams();
     const { address: userAddress, isConnected } = useAccount();
@@ -84,7 +91,10 @@ const CampaignDetailPage = () => {
         <div className="container mx-auto px-4 py-8">
             {/* Header */}
             <div>
-                <h1 className="text-4xl font-bold mb-4">{campaign.title}</h1>
+                <h1 className="text-4xl font-bold mb-4 flex items-center">
+                    {campaign.title}
+                    {isCreator && <ImpactChainCreatorBadge />}
+                </h1>
                 <p className="text-gray-600 mb-6">
                     Created by {campaign.creatorName} on {new Date(Number(campaign.creationDate) * 1000).toLocaleDateString()}
                 </p>
@@ -112,7 +122,7 @@ const CampaignDetailPage = () => {
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <span>Goal:</span>
-                                <span className="font-semibold">{parseInt(campaign.goalAmount) / 1e18} USDC</span>
+                               <span className="font-semibold">{parseInt(campaign.goalAmount) / 1e18} USDC</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Raised:</span>
@@ -144,23 +154,23 @@ const CampaignDetailPage = () => {
                 
             </div>
             {/* Impact Proofs Section */}
-                    <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                        <h2 className="text-2xl font-bold mb-6">Impact Proofs</h2>
-                        {isCreator && (
-                            <div className="mb-8">
-                                <h3 className="text-lg font-semibold mb-4">Add Impact Proof</h3>
-                                <ImpactProofUpload
-                                    contractAddress={contractAddress}
-                                    onProofAdded={handleProofAdded}
-                                />
-                            </div>
-                        )}
-                        <ImpactProofDisplay
-                            key={refreshKey}
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 className="text-2xl font-bold mb-6">Impact Proofs</h2>
+                {isCreator && (
+                    <div className="mb-8">
+                        <h3 className="text-lg font-semibold mb-4">Add Impact Proof</h3>
+                        <ImpactProofUpload
                             contractAddress={contractAddress}
-                            onProofDeleted={handleProofDeleted}
+                            onProofAdded={handleProofAdded}
                         />
                     </div>
+                )}
+                <ImpactProofDisplay
+                    key={refreshKey}
+                    contractAddress={contractAddress}
+                    onProofDeleted={handleProofDeleted}
+                />
+            </div>
         </div>
     );
 };

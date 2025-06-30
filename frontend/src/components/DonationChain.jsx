@@ -194,43 +194,43 @@ const DonationChain = ({ contractAddress }) => {
   }
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="w-full" style={{ minHeight: '8rem' }}>
-        <div className="relative w-full">
-          <div className="flex items-start w-full space-x-0 overflow-x-auto pt-12 pb-4">
-            {donations.map((tx, idx) => (
-              <div
-                key={`${tx.hash}-${idx}`}
-                className="relative flex-shrink-0 -ml-3 first:ml-0"
-                style={{ minWidth: 40 }}
-                ref={el => (anchorRefs.current[idx] = el)}
-                onMouseEnter={() => setHoverIdx(idx)}
-                onMouseLeave={() => setHoverIdx(null)}
-              >
-                <ChainLink
-                  isFilled={true}
-                  isFirst={idx === 0}
-                  isLast={idx === donations.length - 1}
-                />
-                <TooltipPortal show={hoverIdx === idx} anchorRef={{ current: anchorRefs.current[idx] }}>
-                  <div className="bg-gray-800 text-white rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap pointer-events-auto">
-                    <div className="font-bold">{tx.amount} USDC</div>
-                    <div className="text-gray-300">
-                      by {tx.donor.slice(0, 6)}...{tx.donor.slice(-4)}
-                    </div>
-                    <div className="text-gray-400 text-xs">{formatTime(tx.timestamp)}</div>
+  <div className="flex flex-col items-center w-full">
+    <div className="w-full" style={{ minHeight: '4rem' }}>
+      <div className="relative w-full">
+        <div className="flex items-start w-full space-x-0 overflow-x-auto pt-4 pb-2">
+          {donations.map((tx, idx) => (
+            <div
+              key={`${tx.hash}-${idx}`}
+              className="relative flex-shrink-0 -ml-3 first:ml-0"
+              style={{ minWidth: 40 }}
+              ref={el => (anchorRefs.current[idx] = el)}
+              onMouseEnter={() => setHoverIdx(idx)}
+              onMouseLeave={() => setHoverIdx(null)}
+            >
+              <ChainLink
+                isFilled={true}
+                isFirst={idx === 0}
+                isLast={idx === donations.length - 1}
+              />
+              <TooltipPortal show={hoverIdx === idx} anchorRef={{ current: anchorRefs.current[idx] }}>
+                <div className="bg-gray-800 text-white rounded-lg shadow-lg px-3 py-2 text-xs whitespace-nowrap pointer-events-auto">
+                  <div className="font-bold">{tx.amount} USDC</div>
+                  <div className="text-gray-300">
+                    by {tx.donor.slice(0, 6)}...{tx.donor.slice(-4)}
                   </div>
-                </TooltipPortal>
-              </div>
-            ))}
-          </div>
+                  <div className="text-gray-400 text-xs">{formatTime(tx.timestamp)}</div>
+                </div>
+              </TooltipPortal>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="text-sm text-gray-600">
-        Showing {donations.length} most recent donation{donations.length !== 1 ? 's' : ''}.
-      </div>
     </div>
-  );
+    <div className="text-xs text-gray-600 mt-1 mb-2">
+      Showing {donations.length} most recent donation{donations.length !== 1 ? 's' : ''}.
+    </div>
+  </div>
+);
 };
 
 export default DonationChain;

@@ -1,8 +1,7 @@
-// frontend/src/components/ConnectWalletButton.jsx
 import React from 'react';
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi';
-// import { injected } from '@wagmi/connectors';
 import { polygonAmoy } from 'wagmi/chains';
+import { Link } from 'react-router-dom';
 
 function ConnectWalletButton() {
   const { address, isConnected, chain } = useAccount();
@@ -17,7 +16,6 @@ function ConnectWalletButton() {
   if (isConnected) {
     if (chain?.id !== polygonAmoy.id) {
       return (
-        // Replaced inline styles with Tailwind classes
         <button
           onClick={() => switchChain?.({ chainId: polygonAmoy.id })}
           className="
@@ -31,43 +29,37 @@ function ConnectWalletButton() {
       );
     }
 
+    // Show "Start an ImpactChain!" button when connected
     return (
-      // Replaced inline styles with Tailwind classes
-      <div className="flex items-center space-x-2">
-        <span className="font-bold text-primary">
-          Connected: {address.substring(0, 6)}...{address.substring(address.length - 4)}
-        </span>
-        <button
-          onClick={() => disconnect()}
-          className="
-            bg-gray-200 text-gray-800 
-            rounded-lg px-3 py-2 border-none cursor-pointer 
-            hover:bg-gray-300 transition duration-200
-          "
-        >
-          Disconnect
+      <Link to="/create">
+        <button className="
+            bg-green-500
+            font-bold 
+            py-3 px-8 rounded-sm 
+            text-lg shadow-lg hover:shadow-xl hover:bg-green-50
+            transition duration-300 ease-in-out transform hover:scale-105
+          ">
+          Start an ImpactChain!
         </button>
-      </div>
+      </Link>
     );
   }
 
   if (!metaMaskConnector) {
-      return (
-        <p className="text-red-500 font-medium">MetaMask not detected. Please install.</p>
-      );
+    return (
+      <p className="text-red-500 font-medium">MetaMask not detected. Please install.</p>
+    );
   }
 
   return (
-    // Replaced inline styles with Tailwind classes
     <button
       onClick={() => connect({ connector: metaMaskConnector })}
       className="
-            bg-green-400
-            text-black
-            font-bold py-3 px-3 rounded-sm
-            text-lg shadow-lg hover:shadow-xl hover:bg-green-200
-            transition duration-300 ease-in-out transform hover:scale-105
-          ">
+        bg-green-400 text-black font-bold py-3 px-3 rounded-sm
+        text-lg shadow-lg hover:shadow-xl hover:bg-green-200
+        transition duration-300 ease-in-out transform hover:scale-105
+      "
+    >
       Connect Wallet
     </button>
   );
