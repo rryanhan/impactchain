@@ -1,14 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Cropper from "react-easy-crop";
-import getCroppedImg from "../utils/cropImage"; // We'll define this helper below
+import getCroppedImg from "../utils/cropImage";
 import { Stepper, Step, Button } from "@material-tailwind/react";
 import { useAccount } from "wagmi";
 import { BrowserProvider, Contract, parseUnits } from "ethers";
-
 import { pinataUpload } from "../pinataUpload";
 import ImpactChainFactoryABI from "../abi/ImpactChainFactory.json";
 
-// Define your steps here
 const STEPS = [
   "Name",
   "Funding Type",
@@ -19,17 +17,23 @@ const STEPS = [
   "Images"
 ];
 
+// Helper hook for preview URLs
+function useImagePreviews(blobs) {
+  const [urls, setUrls] = useState([]);
 
+  useEffect(() => {
+    const newUrls = blobs.map(blob => (blob ? URL.createObjectURL(blob) : null));
+    setUrls(newUrls);
 
+    return () => {
+      newUrls.forEach(url => url && URL.revokeObjectURL(url));
+    };
+  }, [blobs]);
+
+  return urls;
+}
 
 export default function ImpactChainStepperForm() {
-
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
-const [zoom, setZoom] = useState(1);
-const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-const [showCropper, setShowCropper] = useState(false);
-const [selectedImage, setSelectedImage] = useState(null);
-const [croppedImage, setCroppedImage] = useState(null);
   const { address: userAddress, isConnected } = useAccount();
   const [activeStep, setActiveStep] = useState(0);
 
@@ -46,37 +50,98 @@ const [croppedImage, setCroppedImage] = useState(null);
   const [orgWalletInput, setOrgWalletInput] = useState("");
   const [useCustomWallet, setUseCustomWallet] = useState(false);
 
+  // Image cropping state
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [selectedImageIdx, setSelectedImageIdx] = useState(null);
+  const [croppedImages, setCroppedImages] = useState([]); // Array of blobs
+  const [cropperImageUrl, setCropperImageUrl] = useState("");
+  const previewUrls = useImagePreviews(croppedImages);
+
   // Refs for focusing on inputs after tab change
   const inputRef = useRef(null);
 
+  // Cropper callback
   const onCropComplete = useCallback((_, croppedAreaPixels) => {
-  setCroppedAreaPixels(croppedAreaPixels);
-}, []);
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
 
-const handleImageChange = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    setSelectedImage(URL.createObjectURL(file));
+  // Update cropper image URL when needed
+  useEffect(() => {
+    if (showCropper && selectedImageIdx !== null && form.images[selectedImageIdx]) {
+      const url = URL.createObjectURL(form.images[selectedImageIdx]);
+      setCropperImageUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [showCropper, selectedImageIdx, form.images]);
+
+  // Handle file input change (multiple images)
+  const handleImageChange = (e) => {
+  const files = Array.from(e.target.files);
+  if (files.length > 0) {
+    setForm(f => {
+      const newImages = [...f.images, ...files].slice(0, 5);
+      return { ...f, images: newImages };
+    });
+    setCroppedImages(prev => {
+      const newArr = [...prev, ...new Array(files.length)].slice(0, 5);
+      return newArr;
+    });
+    setSelectedImageIdx(form.images.length); // Start cropping at the first new image
     setShowCropper(true);
-    setForm(f => ({ ...f, images: [file] }));
   }
 };
 
-const handleCropSave = async () => {
-  const cropped = await getCroppedImg(selectedImage, croppedAreaPixels, 600, 400);
-  setCroppedImage(cropped);
-  setShowCropper(false);
-  // Convert cropped blob to File for upload
-  const croppedFile = new File([cropped], "cropped-image.jpg", { type: "image/jpeg" });
-  setForm(f => ({ ...f, images: [croppedFile] }));
+
+  // Crop and save the current image, then move to next or finish
+  const handleCropSave = async () => {
+  const file = form.images[selectedImageIdx];
+  const imageUrl = cropperImageUrl;
+  const cropped = await getCroppedImg(imageUrl, croppedAreaPixels, 600, 400);
+  setCroppedImages(prev => {
+    const arr = [...prev];
+    arr[selectedImageIdx] = cropped;
+    console.log("Cropped images array after cropping:", arr);
+    return arr;
+  });
+
+
+    // Move to next image if exists, else close cropper
+    if (selectedImageIdx < form.images.length - 1) {
+      setSelectedImageIdx(selectedImageIdx + 1);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    } else {
+      setShowCropper(false);
+      setSelectedImageIdx(null);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    }
+  };
+
+  const handleRemoveImage = (idx) => {
+  setForm(f => {
+    const newImages = [...f.images];
+    newImages.splice(idx, 1);
+    return { ...f, images: newImages };
+  });
+  setCroppedImages(prev => {
+    const arr = [...prev];
+    arr.splice(idx, 1);
+    return arr;
+  });
 };
 
-const handleCropCancel = () => {
-  setShowCropper(false);
-  setSelectedImage(null);
-  setCroppedImage(null);
-  setForm(f => ({ ...f, images: [] }));
-};
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setSelectedImageIdx(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedImages([]);
+    setForm(f => ({ ...f, images: [] }));
+  };
 
   // Step navigation
   const handleNext = () => {
@@ -106,7 +171,7 @@ const handleCropCancel = () => {
       case 5:
         return !!form.fundingGoal && Number(form.fundingGoal) > 0;
       case 6:
-        return form.images.length > 0;
+        return form.images.length > 0 && croppedImages.length === form.images.length;
       default:
         return false;
     }
@@ -122,18 +187,20 @@ const handleCropCancel = () => {
     }
     if (activeStep === 6) {
       try {
-        // Upload images
+        // Upload images (use cropped blobs if available)
         const urls = [];
-        for (const file of form.images) {
+        for (let i = 0; i < form.images.length; i++) {
+          const file = croppedImages[i]
+            ? new File([croppedImages[i]], `image${i}.jpg`, { type: "image/jpeg" })
+            : form.images[i];
           const url = await pinataUpload(file);
           urls.push(url);
         }
 
         // Prepare contract details
-        const FACTORY_ADDRESS = "0x343C8076d1A188F0Bb86b5DA795FB367681c3710"; // your deployed address
-        const USDC_ADDRESS = "0x038c064836784A78bAeF18f698B78d2ce5bD0134"; // your ERC20Mock address
+        const FACTORY_ADDRESS = "0x343C8076d1A188F0Bb86b5DA795FB367681c3710";
+        const USDC_ADDRESS = "0x038c064836784A78bAeF18f698B78d2ce5bD0134";
 
-        // Connect to user's wallet
         if (!window.ethereum) throw new Error("Wallet not found");
         const provider = new BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
@@ -144,11 +211,12 @@ const handleCropCancel = () => {
           signer
         );
 
-        // Parse funding goal to correct decimals (USDC usually uses 6, ERC20Mock might use 18)
-        const decimals = 18; // Update if your token is not 18 decimals!
+        const decimals = 18;
         const goalAmount = parseUnits(form.fundingGoal, decimals);
 
-        // Call createImpactChain
+        // Store all image URLs as a comma-separated string
+        const imageUrlString = urls.join(",");
+
         const tx = await factory.createImpactChain(
           form.name,
           form.wallet,
@@ -156,17 +224,13 @@ const handleCropCancel = () => {
           goalAmount,
           form.title,
           form.description,
-          urls[0] // or urls.join(',') if you want to store multiple
+          imageUrlString // store all images as a single string
         );
 
         console.log("Transaction hash:", tx.hash);
-
-        // Optionally show a loading spinner here...
-        await tx.wait(); // Wait for tx confirmation
+        await tx.wait();
 
         alert("Campaign created on blockchain!");
-        // Optionally reset the form or redirect user
-
       } catch (err) {
         alert("Error: " + (err.message ?? err));
       }
@@ -193,12 +257,45 @@ const handleCropCancel = () => {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
     // eslint-disable-next-line
-  }, [activeStep, canGoNext, orgWalletInput, form, isConnected, userAddress, useCustomWallet]);
+  }, [activeStep, canGoNext, orgWalletInput, form, isConnected, userAddress, useCustomWallet, croppedImages]);
 
   // Focus input on step change
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
   }, [activeStep]);
+
+    const dropRef = useRef(null);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (form.images.length >= 5) return;
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    if (files.length > 0) {
+      setForm(f => {
+        const newImages = [...f.images, ...files].slice(0, 5);
+        return { ...f, images: newImages };
+      });
+      setCroppedImages(prev => {
+        const newArr = [...prev, ...new Array(files.length)].slice(0, 5);
+        return newArr;
+      });
+      setSelectedImageIdx(form.images.length);
+      setShowCropper(true);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleZoneClick = () => {
+    if (form.images.length < 5 && dropRef.current) {
+      dropRef.current.value = null; // allow re-uploading same file
+      dropRef.current.click();
+    }
+  };
 
   // Render each step's form fields
   function renderStep() {
@@ -424,61 +521,129 @@ const handleCropCancel = () => {
           </>
         );
       case 6: // Images
-  return (
-    <>
-      <label className="block text-lg font-medium mb-2">Upload Images</label>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="mb-6"
-        onChange={handleImageChange}
-      />
-      {showCropper && selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <div className="relative w-[300px] h-[200px] sm:w-[450px] sm:h-[300px]">
-              <Cropper
-                image={selectedImage}
-                crop={crop}
-                zoom={zoom}
-                aspect={3 / 2}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-              />
+        return (
+          <>
+            <label className="block text-lg font-medium mb-2">
+              Upload Cover Photo (required) and More Images (optional)
+            </label>
+            <div
+                className={`
+                    border-2 border-dashed border-green-400 rounded-lg p-6 mb-6 flex flex-col items-center justify-center cursor-pointer transition
+                    ${form.images.length >= 5 ? "opacity-50 cursor-not-allowed" : "hover:border-green-600"}
+                `}
+                style={{ minHeight: 120 }}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={handleZoneClick}
+                >
+                <input
+                    ref={dropRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: "none" }}
+                    onChange={handleImageChange}
+                    disabled={form.images.length >= 5}
+                />
+                <span className="text-green-700 font-medium">
+                    Drag & drop images here, or <span className="underline">click to upload</span>
+                </span>
+                <span className="text-gray-500 text-xs mt-1">
+                    {form.images.length}/5 images selected
+                </span>
+                </div>
+            {/* Cropping modal for each image */}
+            {showCropper && selectedImageIdx !== null && (
+              <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                  <div className="relative w-[300px] h-[200px] sm:w-[450px] sm:h-[300px]">
+                    <Cropper
+                      image={cropperImageUrl}
+                      crop={crop}
+                      zoom={zoom}
+                      aspect={3 / 2}
+                      onCropChange={setCrop}
+                      onZoomChange={setZoom}
+                      onCropComplete={onCropComplete}
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button onClick={handleCropCancel} color="gray" variant="outlined">Cancel</Button>
+                    <Button onClick={handleCropSave} color="green">
+                      {selectedImageIdx < form.images.length - 1 ? "Crop & Next" : "Crop & Save"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* Preview cropped images */}
+            {croppedImages.length > 0 && (
+  <div className="mb-4 flex">
+    {/* Cover photo */}
+    <div className="relative mr-4 group">
+  <img
+    src={previewUrls[0]}
+    alt="Cover"
+    className="rounded-lg shadow w-[300px] h-[200px] object-cover"
+  />
+  <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
+    Cover Photo
+  </span>
+  {/* Remove button for cover */}
+  <button
+    type="button"
+    onClick={() => handleRemoveImage(0)}
+    className="absolute top-2 right-2 bg-black bg-opacity-60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+    style={{ pointerEvents: "auto" }}
+    aria-label="Remove"
+  >
+    ×
+  </button>
+</div>
+    {/* 2x2 grid for next 4 images */}
+    <div className="grid grid-cols-2 grid-rows-2 gap-2">
+      {[1, 2, 3, 4].map(i =>
+        previewUrls[i] ? (
+          <div key={i} className="relative group">
+            <img
+                src={previewUrls[i]}
+                alt={`Preview ${i + 1}`}
+                className="rounded-lg shadow w-24 h-16 object-cover"
+            />
+            <button
+                type="button"
+                onClick={() => handleRemoveImage(i)}
+                className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ pointerEvents: "auto" }}
+                aria-label="Remove"
+            >
+                ×
+            </button>
             </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <Button onClick={handleCropCancel} color="gray" variant="outlined">Cancel</Button>
-              <Button onClick={handleCropSave} color="green">Crop & Save</Button>
+        ) : null
+      )}
+    </div>
+  </div>
+)}
+{/* Show upload warning if max reached */}
+{form.images.length >= 5 && (
+  <div className="text-red-600 text-sm mb-2">Maximum 5 images allowed.</div>
+)}
+
+            <div className="flex justify-between">
+              <Button onClick={handlePrev} variant="text" color="gray">
+                Back
+              </Button>
+              <Button
+                onClick={handleNextWithData}
+                color="green"
+                disabled={!canGoNext}
+              >
+                Submit
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
-      {croppedImage && (
-        <div className="mb-4">
-          <label className="block text-sm mb-1">Preview:</label>
-          <img
-            src={URL.createObjectURL(croppedImage)}
-            alt="Preview"
-            className="rounded-lg shadow w-[300px] h-[200px] object-cover"
-          />
-        </div>
-      )}
-      <div className="flex justify-between">
-        <Button onClick={handlePrev} variant="text" color="gray">
-          Back
-        </Button>
-        <Button
-          onClick={handleNextWithData}
-          color="green"
-          disabled={!canGoNext}
-        >
-          Submit
-        </Button>
-      </div>
-    </>
-  );
+          </>
+        );
       default:
         return null;
     }
