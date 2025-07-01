@@ -19,7 +19,11 @@ const ImpactChainCard = ({ chain }) => {
         <Link to={`/campaigns/${chain.contractAddress || chain.id}`} className="block">
             <div className="bg-white rounded-lg overflow-hidden group hover:shadow-lg transition-shadow duration-300">
                 <img
-                    src={imageError ? fallbackImage : chain.imageUrl}
+                    src={imageError 
+                        ? fallbackImage 
+                        : (chain.imageUrl && chain.imageUrl.includes(",") 
+                            ? chain.imageUrl.split(",")[0] 
+                            : chain.imageUrl || fallbackImage)}
                     alt={chain.title}
                     className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={handleImageError}

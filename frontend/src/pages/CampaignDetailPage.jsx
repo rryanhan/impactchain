@@ -23,6 +23,7 @@ const CampaignDetailPage = () => {
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
     const [imageError, setImageError] = useState(false);
+    
 
     const fallbackImage = "https://placehold.co/800x400/16a34a/ffffff?text=Campaign+Image";
 
@@ -86,6 +87,9 @@ const CampaignDetailPage = () => {
     const formattedGoal = Number(formatUnits(campaign.goalAmount, 18));
     const formattedRaised = Number(formatUnits(campaign.raisedAmount, 18));
     const progressPercentage = Math.min((formattedRaised / formattedGoal) * 100, 100);
+    const imageUrls = campaign.imageUrl ? campaign.imageUrl.split(",") : [];
+    const coverImage = imageError ? fallbackImage : imageUrls[0] || fallbackImage;
+    const otherImages = imageUrls.slice(1);
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -105,12 +109,27 @@ const CampaignDetailPage = () => {
                 <div className="flex-1 lg:w-3/5">
                     {/* Campaign Image */}
                     <img
-                        src={imageError ? fallbackImage : campaign.imageUrl}
+                        src={coverImage}
                         alt={campaign.title}
-                        className="w-full h-80 object-cover rounded-lg mb-8 shadow-md"
+                        className="w-full h-80 object-cover rounded-lg mb-4 shadow-md"
                         onError={handleImageError}
                         crossOrigin="anonymous"
                     />
+                    {/* Row of smaller images below cover */}
+                    {otherImages.length > 0 && (
+                        <div className="flex gap-2 mb-8">
+                            {otherImages.map((url, idx) => (
+                                <img
+                                    key={idx}
+                                    src={url}
+                                    alt={`Campaign extra ${idx + 1}`}
+                                    className="w-24 h-16 object-cover rounded shadow"
+                                    crossOrigin="anonymous"
+                                    onError={handleImageError}
+                                />
+                            ))}
+                        </div>
+                    )}
                     {/* Campaign Description */}
                     <p className="text-gray-700 leading-relaxed mb-10">{campaign.description}</p>
                     

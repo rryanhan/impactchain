@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAccount, useReadContract, usePublicClient } from 'wagmi';
+import { useAccount, useReadContract, usePublicClient, useDisconnect } from 'wagmi';
 import { formatUnits } from 'ethers';
 import { Link } from 'react-router-dom';
 import ImpactChainABI from '../abi/ImpactChain.json';
@@ -8,11 +8,25 @@ import ImpactChainCard from '../components/ImpactChainCard';
 
 const ProfilePage = () => {
     const { address: userAddress, isConnected } = useAccount();
+    const { disconnect } = useDisconnect();
     const [userCampaigns, setUserCampaigns] = useState([]);
     const [userDonations, setUserDonations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('campaigns');
     const publicClient = usePublicClient();
+
+    const HIDDEN_CHAIN_ADDRESSES = [
+    "0xfa949769650777Eb7c30250df1f504C992D3534c",
+    "0xb3a19a0235A9A509CEC41E23F4b8F07d259875ce",
+    "0x95B2796365987d8FbbDc85E49f22dD74A1B5E08C",
+    "0x72538A04B871C4A46F2d43957A03d71Ce8bb14C2",
+    "0xfa7F05B11f1Dd5C1048735697e9D7037eDb66b0A",
+    "0x938688c30FC340b7090fa98f2B684790e8fB908a",
+    "0x2C40FAcAB765F144f77e4db3654F944e24b72da6",
+    "0x27d4B2d41920CffD362c7e5DbA3b8a5f1e515Dcc",
+    "0x2c0588552Ca50652C092DD0e4b07eDBB1Acc819c",
+    "0xA6625aD90A66759cB02ce958d397A0CC1b889730",
+    ];
 
     // Get all deployed campaigns from factory
     const { data: allCampaigns } = useReadContract({
@@ -27,39 +41,44 @@ const ProfilePage = () => {
         }
     }, [userAddress, allCampaigns, publicClient]);
 
-    const loadUserData = async () => {
-        if (!userAddress || !allCampaigns || !publicClient) return;
+   const loadUserData = async () => {
+    if (!userAddress || !allCampaigns || !publicClient) return;
 
-        setLoading(true);
-        try {
-            // Load all campaign details
-            const campaignDetails = await Promise.all(
-                allCampaigns.map(async (campaignAddress) => {
-                    try {
-                        const details = await publicClient.readContract({
-                            address: campaignAddress,
-                            abi: ImpactChainABI.abi,
-                            functionName: 'getCampaignDetails',
-                        });
+    setLoading(true);
+    try {
+        // Filter out hidden addresses before loading details
+        const visibleCampaigns = allCampaigns.filter(
+          addr => !HIDDEN_CHAIN_ADDRESSES.map(a => a.toLowerCase()).includes(addr.toLowerCase())
+        );
 
-                        return {
-                            address: campaignAddress,
-                            title: details[0],
-                            description: details[1],
-                            imageUrl: details[2],
-                            goalAmount: details[3],
-                            raisedAmount: details[4],
-                            charityWallet: details[5],
-                            creatorName: details[6],
-                            creationDate: details[7],
-                            allowDeletion: details[8],
-                        };
-                    } catch (error) {
-                        console.error(`Error loading campaign ${campaignAddress}:`, error);
-                        return null;
-                    }
-                })
-            );
+        // Load all campaign details
+        const campaignDetails = await Promise.all(
+            visibleCampaigns.map(async (campaignAddress) => {
+                try {
+                    const details = await publicClient.readContract({
+                        address: campaignAddress,
+                        abi: ImpactChainABI.abi,
+                        functionName: 'getCampaignDetails',
+                    });
+
+                    return {
+                        address: campaignAddress,
+                        title: details[0],
+                        description: details[1],
+                        imageUrl: details[2],
+                        goalAmount: details[3],
+                        raisedAmount: details[4],
+                        charityWallet: details[5],
+                        creatorName: details[6],
+                        creationDate: details[7],
+                        allowDeletion: details[8],
+                    };
+                } catch (error) {
+                    console.error(`Error loading campaign ${campaignAddress}:`, error);
+                    return null;
+                }
+            })
+        );
 
             // Filter campaigns created by user
             const createdCampaigns = campaignDetails
@@ -146,7 +165,17 @@ const ProfilePage = () => {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Your Profile</h1>
-                        <p className="text-gray-600">Wallet: {userAddress?.slice(0, 6)}...{userAddress?.slice(-4)}</p>
+                        <div className="flex items-center space-x-2">
+                            <p className="text-gray-600">
+                                Wallet: {userAddress?.slice(0, 6)}...{userAddress?.slice(-4)}
+                            </p>
+                            <button
+                                onClick={disconnect}
+                                className="ml-2 px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-xs"
+                            >
+                                Disconnect
+                            </button>
+                        </div>
                         <div className="flex space-x-4 mt-2 text-sm">
                             <span className="text-gray-600">
                                 <strong>{createdCampaigns.length}</strong> Campaigns Created

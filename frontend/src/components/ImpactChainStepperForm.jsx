@@ -217,6 +217,16 @@ export default function ImpactChainStepperForm() {
         // Store all image URLs as a comma-separated string
         const imageUrlString = urls.join(",");
 
+        console.log("Submitting campaign with params:", {
+      name: form.name,
+      wallet: form.wallet,
+      USDC_ADDRESS,
+      goalAmount: goalAmount.toString(),
+      title: form.title,
+      description: form.description,
+      imageUrlString,
+    });
+
         const tx = await factory.createImpactChain(
           form.name,
           form.wallet,
@@ -228,7 +238,27 @@ export default function ImpactChainStepperForm() {
         );
 
         console.log("Transaction hash:", tx.hash);
+
+        alert(
+            "Your campaign transaction has been submitted!\n\n" +
+            "MetaMask may take a minute or two to confirm it. " +
+            "You can check your profile to see your campaign once it is approved on the blockchain."
+            );
         await tx.wait();
+
+        setForm({
+            name: "",
+            fundingType: "",
+            wallet: "",
+            title: "",
+            description: "",
+            fundingGoal: "",
+            images: [],
+            });
+            setOrgWalletInput("");
+            setUseCustomWallet(false);
+            setCroppedImages([]);
+            setActiveStep(0);
 
         alert("Campaign created on blockchain!");
       } catch (err) {
