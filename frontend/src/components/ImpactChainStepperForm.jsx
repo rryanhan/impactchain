@@ -333,7 +333,7 @@ export default function ImpactChainStepperForm() {
       case 0: // Name
         return (
           <>
-            <label className="block text-lg font-medium mb-2">What is your name?</label>
+            <label className="block text-lg font-medium mb-2">What is your name/organization?</label>
             <input
               ref={inputRef}
               className="border-2 border-green-500 rounded w-full p-3 text-lg mb-6"
