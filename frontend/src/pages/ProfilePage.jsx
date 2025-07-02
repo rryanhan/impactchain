@@ -161,7 +161,7 @@ const ProfilePage = () => {
             <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                 <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 flex items-center justify-center">
-                        <img src="/public/assets/profile-icon.png"/>
+                        <img src="/assets/profile-icon.png"/>
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Your Profile</h1>

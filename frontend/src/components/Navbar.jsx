@@ -12,7 +12,7 @@ function Navbar() {
     ">
             {/* Logo/Title */}
             <Link to="/">
-                <img src={"/public/assets/impact-chain-logo.png"} alt="ImpactChain Logo" className="h-15" />
+                <img src={"/assets/impact-chain-logo.png"} alt="ImpactChain Logo" className="h-15" />
             </Link>
             {/* Navigation and Connect Wallet */}
             <nav className="flex items-center space-x-4">
@@ -38,7 +38,7 @@ function Navbar() {
               cursor-pointer
               hover:opacity-80
               transition-opacity"
-                            src="/public/assets/profile-icon.png"
+                            src="/assets/profile-icon.png"
                             alt='Profile'
                         />
                     </Link>
@@ -48,7 +48,7 @@ function Navbar() {
                     <img className="
               w-20
               flex items-center justify-center"
-                        src="/public/assets/profile-icon.png"
+                        src="/assets/profile-icon.png"
                         alt='Profile'
                     />
                 )}
