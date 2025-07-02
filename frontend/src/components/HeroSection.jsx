@@ -45,7 +45,7 @@ function HeroSection() {
       {/* Right Illustration */}
       <div className="flex-[2] flex justify-center md:justify-end">
         <img 
-          src="./src/assets/impact-illustration.png"
+          src="/public/assets/impact-illustration.png"
           alt="Hand holding blockchain chain" 
           className="max-w-xs md:max-w-sm lg:max-w-md w-full h-auto"
         />
