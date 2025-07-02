@@ -15,7 +15,7 @@ Additionally, many platforms rely on centralized intermediaries, which introduce
 - Social Campaigns (GoFundMe): Trust depends on individual claims; little to no proof of spend
 
 ### Real-life Cases
-
+In 2010, the American Red Cross raised nearly $500 million for Haiti earthquake relief. Yet, according to an NPR/ProPublica investigation, only six permanent homes were built, raising major questions about fund allocation and transparency.
 - https://www.npr.org/2015/06/03/411524156/in-search-of-the-red-cross-500-million-in-haiti-relief
 
 
