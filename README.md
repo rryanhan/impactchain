@@ -17,3 +17,5 @@ Additionally, many platforms rely on centralized intermediaries, which introduce
 ### Real-life Cases
 
 - https://www.npr.org/2015/06/03/411524156/in-search-of-the-red-cross-500-million-in-haiti-relief
+
+
